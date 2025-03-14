@@ -40,11 +40,6 @@ function isValidEmail(email) {
     return emailRegex.test(email);
 }
 
-// Helper function to validate phone number format
-function isValidPhoneNumber(phone) {
-    const phoneRegex = /^\+?[1-9]\d{1,14}$/; // E.164 format
-    return phoneRegex.test(phone);
-}
 
 // Login endpoint
 app.post('/login', async (req, res) => {
@@ -94,9 +89,7 @@ app.post('/signup', async (req, res) => {
     if (!isValidEmail(email)) {
         return res.status(400).json({ error: 'Invalid email format' });
     }
-    if (!isValidPhoneNumber(phone_number)) {
-        return res.status(400).json({ error: 'Invalid phone number format' });
-    }
+
     if (password !== confirm_password) {
         return res.status(400).json({ error: 'Passwords do not match' });
     }
@@ -179,7 +172,7 @@ app.post('/forgot-password', async (req, res) => {
     }
 
     // Send the reset link to the user's email
-    const resetLink = `http://your-frontend-url/reset-password?token=${resetToken}`;
+    const resetLink = `http://localhost:5173/change-password/reset-password?token=${resetToken}`;
     const mailOptions = {
         from: 'Donation Organization',
         to: email,
