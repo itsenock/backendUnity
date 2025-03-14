@@ -104,10 +104,14 @@ app.post('/signup', async (req, res) => {
         return res.status(500).json({ error: 'Failed to create user' });
     }
 
+    // Generate a JWT token
+    const token = jwt.sign({ userId: newUser.id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+
     // Return success response
     return res.status(200).json({
         message: 'Registered successfully',
         user: { fullname: newUser.fullname, email: newUser.email, phone_number: newUser.phone_number },
+        token,
     });
 });
 
