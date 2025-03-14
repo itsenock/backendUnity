@@ -7,10 +7,28 @@ const bodyParser = require('body-parser');
 const nodemailer = require('nodemailer'); // For sending emails
 const cors = require('cors');
 
+const allowedOrigins = [
+    'http://localhost:5173',
+];
+
+// Configure CORS options
+const corsOptions = {
+    origin: (origin, callback) => {
+        if (allowedOrigins.includes(origin) || !origin) {
+            // Allow requests from allowed origins or when origin is undefined (e.g., Postman)
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
+};
+
 
 const app = express();
-app.use(cors());
-app.use(bodyParser.json());
+// Enable CORS with options
+app.use(cors(corsOptions));
+// Handle preflight requests
+app.options('*', cors(corsOptions));app.use(bodyParser.json());
 
 
 // Initialize Supabase client
