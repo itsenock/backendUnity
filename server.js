@@ -4,11 +4,9 @@ const { createClient } = require('@supabase/supabase-js');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const bodyParser = require('body-parser');
-const cors = require('cors');
 
 const app = express();
 app.use(bodyParser.json());
-app.use(cors());
 
 // Initialize Supabase client
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
@@ -111,110 +109,6 @@ app.post('/signup', async (req, res) => {
         message: 'Registered successfully',
         user: { fullname: newUser.fullname, email: newUser.email, phone_number: newUser.phone_number },
     });
-});
-
-
-const nodemailer = require('nodemailer'); // For sending emails
-require('dotenv').config();
-
-// Helper function to send emails
-const transporter = nodemailer.createTransport({
-    service: 'gmail', // or your email service provider
-    auth: {
-        user: process.env.EMAIL_USER, // Your email address
-        pass: process.env.EMAIL_PASS, // Your email password or app-specific password
-    },
-});
-
-// Request Password Reset Endpoint
-app.post('/forgot-password', async (req, res) => {
-    const { email } = req.body;
-
-    // Validate email format
-    if (!isValidEmail(email)) {
-        return res.status(400).json({ error: 'Invalid email format' });
-    }
-
-    // Check if the user exists in the database
-    const { data: user, error: fetchError } = await supabase
-        .from('users')
-        .select('*')
-        .eq('email', email)
-        .single();
-
-    if (fetchError || !user) {
-        return res.status(404).json({ error: 'User not found' });
-    }
-
-    // Generate a password reset token
-    const resetToken = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, { expiresIn: '15m' });
-
-    // Store the token in the database (optional, you can store it in a separate table)
-    const { error: updateError } = await supabase
-        .from('users')
-        .update({ reset_token: resetToken })
-        .eq('id', user.id);
-
-    if (updateError) {
-        return res.status(500).json({ error: 'Failed to generate reset token' });
-    }
-
-    // Send the reset link to the user's email
-    const resetLink = `http://your-frontend-url/reset-password?token=${resetToken}`;
-    const mailOptions = {
-        from: process.env.EMAIL_USER,
-        to: email,
-        subject: 'Password Reset Request',
-        text: `You requested a password reset. Please click the following link to reset your password: ${resetLink}`,
-    };
-
-    transporter.sendMail(mailOptions, (err, info) => {
-        if (err) {
-            console.error('Error sending email:', err);
-            return res.status(500).json({ error: 'Failed to send reset email' });
-        }
-        return res.status(200).json({ message: 'Password reset link sent to your email' });
-    });
-});
-
-// Reset Password Endpoint
-app.post('/reset-password', async (req, res) => {
-    const { token, newPassword } = req.body;
-
-    // Verify the token
-    try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-        // Find the user by ID
-        const { data: user, error: fetchError } = await supabase
-            .from('users')
-            .select('*')
-            .eq('id', decoded.userId)
-            .eq('reset_token', token)
-            .single();
-
-        if (fetchError || !user) {
-            return res.status(400).json({ error: 'Invalid or expired reset token' });
-        }
-
-        // Hash the new password
-        const saltRounds = 10;
-        const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
-
-        // Update the user's password and clear the reset token
-        const { error: updateError } = await supabase
-            .from('users')
-            .update({ password_hash: hashedPassword, reset_token: null })
-            .eq('id', user.id);
-
-        if (updateError) {
-            return res.status(500).json({ error: 'Failed to reset password' });
-        }
-
-        return res.status(200).json({ message: 'Password reset successfully' });
-    } catch (err) {
-        return res.status(400).json({ error: 'Invalid or expired reset token' });
-    }
 });
 
 // Start the server
