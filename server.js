@@ -179,7 +179,7 @@ app.post('/forgot-password', async (req, res) => {
     }
 
     // Send the reset link to the user's email
-    const resetLink = `http://your-frontend-url/reset-password?token=${resetToken}`;
+    const resetLink = `http://localhost:5173/change-password/reset-password?token=${resetToken}`;
     const mailOptions = {
         from: 'Donation Organization',
         to: email,
