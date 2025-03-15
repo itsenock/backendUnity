@@ -10,7 +10,7 @@ const cors = require('cors');
 const allowedOrigins = [
     'http://localhost:5173',
     'http://localhost:5174',
-    'https://unity-steel.vercel.app/',
+    'https://unity-steel.vercel.app',
 ];
 
 // Configure CORS options
