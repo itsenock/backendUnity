@@ -26,13 +26,12 @@ const corsOptions = {
     },
 };
 
-
 const app = express();
 // Enable CORS with options
 app.use(cors(corsOptions));
 // Handle preflight requests
-app.options('*', cors(corsOptions));app.use(bodyParser.json());
-
+app.options('*', cors(corsOptions));
+app.use(bodyParser.json());
 
 // Initialize Supabase client
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
@@ -42,7 +41,6 @@ function isValidEmail(email) {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
 }
-
 
 // Login endpoint
 app.post('/login', async (req, res) => {
@@ -92,7 +90,6 @@ app.post('/signup', async (req, res) => {
     if (!isValidEmail(email)) {
         return res.status(400).json({ error: 'Invalid email format' });
     }
-
     if (password !== confirm_password) {
         return res.status(400).json({ error: 'Passwords do not match' });
     }
@@ -120,7 +117,8 @@ app.post('/signup', async (req, res) => {
         .single();
 
     if (insertError) {
-        return res.status(500).json({ error: 'Failed to create user' });
+        console.error('Supabase Insert Error:', insertError);
+        return res.status(500).json({ error: 'Failed to create user', details: insertError.message });
     }
 
     // Generate a JWT token
@@ -128,11 +126,13 @@ app.post('/signup', async (req, res) => {
 
     // Return success response
     return res.status(200).json({
-        message: 'Re••••••••••••••••gistered successfully',
+        message: 'Registered successfully',
         user: { fullname: newUser.fullname, email: newUser.email, phone_number: newUser.phone_number },
         token,
     });
 });
+
+// Email transporter configuration
 const transporter = nodemailer.createTransport({
     service: 'gmail', // or your email service provider
     auth: {
@@ -141,7 +141,7 @@ const transporter = nodemailer.createTransport({
     },
 });
 
-// Request Password Reset Endpoint
+// Forgot Password Endpoint
 app.post('/forgot-password', async (req, res) => {
     const { email } = req.body;
 
