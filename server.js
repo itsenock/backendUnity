@@ -10,6 +10,7 @@ const cors = require('cors');
 const allowedOrigins = [
     'http://localhost:5173',
     'http://localhost:5174',
+    'https://unity-ecru-theta.vercel.app',
     'https://unity-steel.vercel.app',
 ];
 
@@ -127,7 +128,7 @@ app.post('/signup', async (req, res) => {
 
     // Return success response
     return res.status(200).json({
-        message: 'Registered successfully',
+        message: 'Re••••••••••••••••gistered successfully',
         user: { fullname: newUser.fullname, email: newUser.email, phone_number: newUser.phone_number },
         token,
     });
